@@ -1,6 +1,12 @@
 # Badminton Footwork Trainer
 
-A Python application that helps you practise badminton footwork by displaying a 2D court and flashing a shuttlecock at the six standard court corners. Place your laptop or screen court-side, watch for the shuttlecock, and move to the indicated position on a real court.
+A training tool that displays a 2D badminton court and flashes a shuttlecock at the six standard court corners. Place your laptop or screen court-side, watch for the shuttlecock, and move to the indicated position on a real court.
+
+## Play Online
+
+**No installation needed** — open the web version in any browser:
+
+https://hoang-nguyen-184.github.io/badminton-footwork-trainer/
 
 ## How It Works
 
@@ -25,12 +31,16 @@ A Python application that helps you practise badminton footwork by displaying a 
 
 The shuttlecock never appears at the same position twice in a row.
 
-## Requirements
+## Run Locally (Desktop Version)
+
+The desktop version uses Python + Pygame and runs in fullscreen.
+
+### Requirements
 
 - Python 3.8 or later
 - [Pygame](https://www.pygame.org/) 2.0+
 
-## Installation
+### Installation
 
 ```bash
 git clone https://github.com/hoang-nguyen-184/badminton-footwork-trainer.git
@@ -38,7 +48,7 @@ cd badminton-footwork-trainer
 pip install -r requirements.txt
 ```
 
-## Usage
+### Usage
 
 ```bash
 python main.py
@@ -61,7 +71,8 @@ On the start screen you can configure:
 ## Project Structure
 
 ```
-main.py          Entry point and training game loop
+docs/index.html  Web version (single self-contained HTML file)
+main.py          Desktop entry point and training game loop
 court.py         Court drawing and position mapping
 shuttlecock.py   Shuttlecock rendering
 sound.py         Programmatic hit-sound generation (no external audio files)
