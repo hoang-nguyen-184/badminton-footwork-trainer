@@ -35,9 +35,16 @@ POSITIONS = {
 class Court:
     """Handles computing court dimensions and drawing the court."""
 
-    def __init__(self, window_width, window_height, top_margin=60, bottom_margin=40, side_margin=30):
+    # Design base height — all margins scale relative to this
+    BASE_HEIGHT = 700
+
+    def __init__(self, window_width, window_height):
         self.window_width = window_width
         self.window_height = window_height
+        self.scale = window_height / self.BASE_HEIGHT
+        top_margin = int(60 * self.scale)
+        bottom_margin = int(40 * self.scale)
+        side_margin = int(30 * self.scale)
         self.rect = self._compute_rect(top_margin, bottom_margin, side_margin)
 
     def _compute_rect(self, top_margin, bottom_margin, side_margin):
@@ -70,43 +77,45 @@ class Court:
     def draw(self, surface):
         """Draw the badminton half-court on the given surface."""
         r = self.rect
+        s = self.scale
+        line_w = max(2, int(2 * s))
 
         # Court surface
         pygame.draw.rect(surface, GREEN, r)
 
         # Outer boundary (doubles sidelines + baseline + net line)
-        pygame.draw.rect(surface, WHITE, r, 2)
+        pygame.draw.rect(surface, WHITE, r, line_w)
 
         # Singles sidelines
         inset = int(r.width * FRAC_SINGLES_INSET)
         pygame.draw.line(surface, WHITE,
-                         (r.left + inset, r.top), (r.left + inset, r.bottom), 2)
+                         (r.left + inset, r.top), (r.left + inset, r.bottom), line_w)
         pygame.draw.line(surface, WHITE,
-                         (r.right - inset, r.top), (r.right - inset, r.bottom), 2)
+                         (r.right - inset, r.top), (r.right - inset, r.bottom), line_w)
 
         # Short service line
         service_y = int(r.bottom - r.height * FRAC_SHORT_SERVICE)
         pygame.draw.line(surface, WHITE,
-                         (r.left, service_y), (r.right, service_y), 2)
+                         (r.left, service_y), (r.right, service_y), line_w)
 
         # Long service line (doubles, near baseline)
         long_y = int(r.bottom - r.height * FRAC_LONG_SERVICE)
         pygame.draw.line(surface, WHITE,
-                         (r.left, long_y), (r.right, long_y), 2)
+                         (r.left, long_y), (r.right, long_y), line_w)
 
         # Center line (from short service line to long service line)
         center_x = r.left + r.width // 2
         pygame.draw.line(surface, WHITE,
-                         (center_x, service_y), (center_x, long_y), 2)
+                         (center_x, service_y), (center_x, long_y), line_w)
 
         # Net at top — drawn slightly wider and thicker
-        net_extend = 10
+        net_extend = int(10 * s)
         pygame.draw.line(surface, NET_COLOR,
                          (r.left - net_extend, r.top),
-                         (r.right + net_extend, r.top), 4)
+                         (r.right + net_extend, r.top), max(4, int(4 * s)))
 
         # "NET" label
-        font = pygame.font.SysFont(None, 20)
+        font = pygame.font.SysFont(None, int(20 * s))
         label = font.render("NET", True, NET_COLOR)
-        label_rect = label.get_rect(centerx=r.centerx, bottom=r.top - 4)
+        label_rect = label.get_rect(centerx=r.centerx, bottom=r.top - int(4 * s))
         surface.blit(label, label_rect)
