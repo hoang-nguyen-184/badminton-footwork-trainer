@@ -8,9 +8,8 @@ from screens import run_start_screen, run_end_screen
 from shuttlecock import draw_shuttlecock
 from sound import generate_hit_sound
 
-# Window settings
-WINDOW_WIDTH = 500
-WINDOW_HEIGHT = 700
+# Design base resolution (all sizes are relative to this)
+BASE_HEIGHT = 700
 DARK_BG = (30, 30, 60)
 WHITE = (255, 255, 255)
 
@@ -18,15 +17,18 @@ WHITE = (255, 255, 255)
 def run_training(surface, clock, config, hit_sound):
     """Run the training session. Returns stats dict."""
     w = surface.get_width()
-    court = Court(WINDOW_WIDTH, WINDOW_HEIGHT)
+    h = surface.get_height()
+    scale = h / BASE_HEIGHT
+
+    court = Court(w, h)
     position_names = list(POSITIONS.keys())
 
     duration = config["duration"]
     interval = config["interval"]
     display_dur = config["display_duration"]
 
-    timer_font = pygame.font.SysFont(None, 36)
-    count_font = pygame.font.SysFont(None, 24)
+    timer_font = pygame.font.SysFont(None, int(36 * scale))
+    count_font = pygame.font.SysFont(None, int(24 * scale))
 
     shuttle_count = 0
     current_pos = None
@@ -91,7 +93,7 @@ def run_training(surface, clock, config, hit_sound):
         mins = int(remaining) // 60
         secs = int(remaining) % 60
         timer_text = timer_font.render(f"Time Remaining: {mins:02d}:{secs:02d}", True, WHITE)
-        surface.blit(timer_text, timer_text.get_rect(centerx=w // 2, y=15))
+        surface.blit(timer_text, timer_text.get_rect(centerx=w // 2, y=int(15 * scale)))
 
         # Court
         court.draw(surface)
@@ -99,11 +101,11 @@ def run_training(surface, clock, config, hit_sound):
         # Shuttlecock
         if shuttle_visible and current_pos:
             px, py = court.get_position(current_pos)
-            draw_shuttlecock(surface, px, py, label=current_pos)
+            draw_shuttlecock(surface, px, py, label=current_pos, scale=scale)
 
         # Shuttle count at bottom
         count_text = count_font.render(f"Shuttles shown: {shuttle_count}", True, WHITE)
-        surface.blit(count_text, (10, WINDOW_HEIGHT - 30))
+        surface.blit(count_text, (int(10 * scale), h - int(30 * scale)))
 
         pygame.display.flip()
         clock.tick(60)
@@ -114,7 +116,11 @@ def main():
     pygame.mixer.pre_init(44100, -16, 1, 512)
     pygame.init()
 
-    surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    # Use the full native display resolution
+    display_info = pygame.display.Info()
+    screen_w = display_info.current_w
+    screen_h = display_info.current_h
+    surface = pygame.display.set_mode((screen_w, screen_h), pygame.FULLSCREEN)
     pygame.display.set_caption("Badminton Footwork Trainer")
     clock = pygame.time.Clock()
 
