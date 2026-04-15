@@ -4,11 +4,10 @@ import pygame
 FEATHER_COLOR = (255, 255, 240)
 FEATHER_OUTLINE = (180, 180, 180)
 CORK_COLOR = (200, 60, 60)
-LABEL_COLOR = (255, 255, 100)
 
 
-def draw_shuttlecock(surface, x, y, label=None, scale=1.0):
-    """Draw a shuttlecock at the given position with an optional label.
+def draw_shuttlecock(surface, x, y, scale=1.0):
+    """Draw a shuttlecock at the given position.
 
     The shuttlecock is drawn as a triangular feather cone with a cork circle.
     scale: multiplier relative to the base 700px design height.
@@ -36,10 +35,3 @@ def draw_shuttlecock(surface, x, y, label=None, scale=1.0):
     # Cork (circle at the tip of the cone)
     pygame.draw.circle(surface, CORK_COLOR, (x, y + r), cork_r)
     pygame.draw.circle(surface, (160, 40, 40), (x, y + r), cork_r, line_w)
-
-    # Position label
-    if label:
-        font = pygame.font.SysFont(None, int(22 * scale))
-        text = font.render(label, True, LABEL_COLOR)
-        text_rect = text.get_rect(centerx=x, top=y + r + cork_r + int(4 * scale))
-        surface.blit(text, text_rect)

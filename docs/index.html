@@ -147,7 +147,16 @@ const FEATHER_COLOR   = "rgb(255,255,240)";
 const FEATHER_OUTLINE = "rgb(180,180,180)";
 const CORK_COLOR      = "rgb(200,60,60)";
 const CORK_OUTLINE    = "rgb(160,40,40)";
-const LABEL_COLOR     = "rgb(255,255,100)";
+
+// Number spoken when shuttlecock appears at each position
+const POSITION_NUMBER = {
+  "Front Right": 1,
+  "Mid Right":   2,
+  "Back Right":  3,
+  "Front Left":  4,
+  "Mid Left":    5,
+  "Back Left":   6,
+};
 
 const BASE_HEIGHT = 700;
 
@@ -188,7 +197,6 @@ let lastHideTime = 0, shuttleShowTime = 0;
 let animFrameId = null;
 
 // Audio
-let audioCtx = null;
 
 // ── Canvas sizing ──────────────────────────────────────────
 function resizeCanvas() {
@@ -296,7 +304,7 @@ function pickNextPosition(current) {
 }
 
 // ── Shuttlecock drawing ────────────────────────────────────
-function drawShuttlecock(x, y, label) {
+function drawShuttlecock(x, y) {
   const r   = Math.round(18 * scale);
   const cr  = Math.round(7 * scale);
   const lw  = Math.max(1, scale);
@@ -332,63 +340,18 @@ function drawShuttlecock(x, y, label) {
   ctx.strokeStyle = CORK_OUTLINE;
   ctx.lineWidth = lw;
   ctx.stroke();
-
-  // Label
-  if (label) {
-    ctx.fillStyle = LABEL_COLOR;
-    ctx.font = `${Math.round(22 * scale)}px Arial`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "top";
-    ctx.fillText(label, x, y + r + cr + 4 * scale);
-  }
 }
 
-// ── Sound ──────────────────────────────────────────────────
-function ensureAudio() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === "suspended") audioCtx.resume();
-}
-
-function playHitSound() {
-  if (!audioCtx) return;
+// ── Sound — speak the position number ─────────────────────
+function speakNumber(number) {
   try {
-    const now = audioCtx.currentTime;
-    const duration = 0.12; // 120ms
-
-    // Oscillator 1: 880 Hz (fundamental)
-    const osc1 = audioCtx.createOscillator();
-    osc1.type = "sine";
-    osc1.frequency.value = 880;
-    const gain1 = audioCtx.createGain();
-    gain1.gain.setValueAtTime(0.36, now); // 0.6 * 0.6 volume
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + duration);
-    osc1.connect(gain1).connect(audioCtx.destination);
-
-    // Oscillator 2: 1320 Hz
-    const osc2 = audioCtx.createOscillator();
-    osc2.type = "sine";
-    osc2.frequency.value = 1320;
-    const gain2 = audioCtx.createGain();
-    gain2.gain.setValueAtTime(0.18, now); // 0.3 * 0.6
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + duration);
-    osc2.connect(gain2).connect(audioCtx.destination);
-
-    // Oscillator 3: 2640 Hz
-    const osc3 = audioCtx.createOscillator();
-    osc3.type = "sine";
-    osc3.frequency.value = 2640;
-    const gain3 = audioCtx.createGain();
-    gain3.gain.setValueAtTime(0.06, now); // 0.1 * 0.6
-    gain3.gain.exponentialRampToValueAtTime(0.001, now + duration);
-    osc3.connect(gain3).connect(audioCtx.destination);
-
-    osc1.start(now); osc1.stop(now + duration);
-    osc2.start(now); osc2.stop(now + duration);
-    osc3.start(now); osc3.stop(now + duration);
+    const utterance = new SpeechSynthesisUtterance(String(number));
+    utterance.rate = 1.2;
+    utterance.pitch = 1.0;
+    speechSynthesis.cancel(); // stop any in-progress speech immediately
+    speechSynthesis.speak(utterance);
   } catch (e) {
-    // Silently ignore audio errors
+    // Silently ignore if speech synthesis is unavailable
   }
 }
 
@@ -420,7 +383,7 @@ function drawFrame() {
   // Shuttlecock
   if (shuttleVisible && currentPos) {
     const pos = getPositionPixel(currentPos);
-    drawShuttlecock(pos.x, pos.y, currentPos);
+    drawShuttlecock(pos.x, pos.y);
   }
 
   // Shuttle count
@@ -452,7 +415,7 @@ function gameLoop() {
       shuttleVisible = true;
       shuttleShowTime = now;
       shuttleCount++;
-      playHitSound();
+      speakNumber(POSITION_NUMBER[currentPos]);
     }
   } else {
     if (now - shuttleShowTime >= trainDisplay) {
@@ -504,7 +467,6 @@ function endTraining(actualDuration) {
 
 // ── Event handlers ─────────────────────────────────────────
 document.getElementById("btn-start").addEventListener("click", () => {
-  ensureAudio();
   const dur  = parseFloat(document.getElementById("inp-duration").value);
   const ivl  = parseFloat(document.getElementById("inp-interval").value);
   const disp = parseFloat(document.getElementById("inp-display").value);
