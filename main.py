@@ -6,15 +6,25 @@ import pygame
 from court import Court, POSITIONS
 from screens import run_start_screen, run_end_screen
 from shuttlecock import draw_shuttlecock
-from sound import generate_hit_sound
+from sound import speak_number
 
 # Design base resolution (all sizes are relative to this)
 BASE_HEIGHT = 700
 DARK_BG = (30, 30, 60)
 WHITE = (255, 255, 255)
 
+# Number called out when the shuttlecock appears at each position
+POSITION_NUMBER = {
+    "Front Right": 1,
+    "Mid Right":   2,
+    "Back Right":  3,
+    "Front Left":  4,
+    "Mid Left":    5,
+    "Back Left":   6,
+}
 
-def run_training(surface, clock, config, hit_sound):
+
+def run_training(surface, clock, config):
     """Run the training session. Returns stats dict."""
     w = surface.get_width()
     h = surface.get_height()
@@ -80,7 +90,7 @@ def run_training(surface, clock, config, hit_sound):
                 shuttle_visible = True
                 shuttle_show_time = now
                 shuttle_count += 1
-                hit_sound.play()
+                speak_number(POSITION_NUMBER[current_pos])
         else:
             if now - shuttle_show_time >= display_dur:
                 shuttle_visible = False
@@ -101,7 +111,7 @@ def run_training(surface, clock, config, hit_sound):
         # Shuttlecock
         if shuttle_visible and current_pos:
             px, py = court.get_position(current_pos)
-            draw_shuttlecock(surface, px, py, label=current_pos, scale=scale)
+            draw_shuttlecock(surface, px, py, scale=scale)
 
         # Shuttle count at bottom
         count_text = count_font.render(f"Shuttles shown: {shuttle_count}", True, WHITE)
@@ -112,8 +122,6 @@ def run_training(surface, clock, config, hit_sound):
 
 
 def main():
-    # Initialize mixer before pygame.init() for mono sound support
-    pygame.mixer.pre_init(44100, -16, 1, 512)
     pygame.init()
 
     # Use the full native display resolution
@@ -124,15 +132,6 @@ def main():
     pygame.display.set_caption("Badminton Footwork Trainer")
     clock = pygame.time.Clock()
 
-    # Generate the hit sound (may fail in environments without audio)
-    try:
-        hit_sound = generate_hit_sound()
-    except Exception:
-        class _SilentSound:
-            def play(self):
-                pass
-        hit_sound = _SilentSound()
-
     while True:
         # Start screen
         config = run_start_screen(surface, clock)
@@ -140,7 +139,7 @@ def main():
             break
 
         # Training
-        stats = run_training(surface, clock, config, hit_sound)
+        stats = run_training(surface, clock, config)
 
         # End screen
         result = run_end_screen(surface, clock, stats)
